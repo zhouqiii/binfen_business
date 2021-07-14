@@ -25,6 +25,7 @@
             :sourceData="sourceData"
             :listLoading='listLoading'
             :dataData="dataData"
+            v-on:dataChange='dataChange'
           ></check-table>
         </el-tab-pane>
       </el-tabs>
@@ -144,6 +145,11 @@ export default {
       const reportId=this.assignCondition().reportId
       const obj=this.assignCondition().obj
     },
+    //子组件添加表头后通知父组件接受
+    dataChange(val){
+      this.dataData=val
+      console.log(this.dataData)
+    }
   },
   created(){
     this.$nextTick(()=>{

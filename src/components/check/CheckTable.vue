@@ -14,24 +14,36 @@
           </template>
         </el-table-column> -->
         <el-table-column
-          v-for="(item,index) in dataData"
+          v-for="(item,index) in dataDataGet"
           :key="index"
           align="center"
           :prop="item.syllableEng"
-        >  
-          <template slot-scope="scope">
+        > 
+          <el-table-column
+            v-if="item.children"
+            align="center"
+          >
+            <template slot="header" :slot-scope="item.children">
+              <el-input v-model="item.children.title" placeholder="请输入" size="large" @input="getScope"/>
+            </template>
+          </el-table-column> 
+          <!-- <template slot-scope="scope">
             <span v-if="scope.row.index<count">
               <el-input v-model="scope.row.dict" maxlength="300" placeholder="请输入原因" size="large"/>
             </span>
-          </template>
+          </template> -->
           <template slot="header" slot-scope="scope">
             <div @click="getCell(scope)">{{item.syllableChi}}</div>
           </template>
         </el-table-column>
         <el-table-column align="right">
           <template slot="header">
-            <div class="dict_title">表头操作:</div>
             <div class="style_display">
+              <div class="dict_title">表头操作:</div>
+              <el-button type="primary" size="small" icon="el-icon-circle-plus-outline" @click="handleAddDict">
+              </el-button>
+            </div>
+            <div class="style_display next">
               <el-dropdown @command="handleBgColor" trigger="click">
                 <div :style="{background:activeBgColor}">
                 背景颜色<i class="el-icon-arrow-down el-icon--right"></i>
@@ -85,11 +97,6 @@
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
-              <div>
-                <el-button type="primary" size="small" @click="handleAddDict">
-                  <i class="el-icon-circle-plus-outline"></i>
-                </el-button>
-              </div>
             </div>
           </template>
         </el-table-column>
@@ -146,6 +153,8 @@ export default {
   },
   data() {
     return {
+      test:'',
+      dataDataGet:[],
       count:0,//用来标记前几行是加的表头
       pages: [10, 15, 20, 30, 50, 100],
       activeBgColor:'inherit',//背景颜色
@@ -221,19 +230,25 @@ export default {
     //动态添加表头-我使用的方法使在表格数据里加一行自定义操作的空数据
     //然后标记加了几行，上送的时候取出这几行编辑的数据作为表头上送
     handleAddDict(){
-      this.count+=1
-      let obj={}
-      this.dataData.map(item=>{
-        obj[item.syllableEng]=''
-        })
-      obj.dict=''
-      this.sourceData.unshift(obj)
+      for(let i=0;i<this.dataDataGet.length;i++){
+        this.count+=1
+        const obj={'title':'','count':this.count}
+        this.$set(this.dataDataGet[i],'children',obj)
+      }
+      console.log(this.dataDataGet)
     },
-
+    ///////
+    getScope(){
+      // this.$set(this.dataData[index].children,"title",val.title);
+      this.$emit('dataChange',this.dataDataGet)
+    }
   },
   watch:{
       sourceData(){
         console.log(this.sourceData)
+      },
+      dataData(val){
+        this.dataDataGet=val
       }
   }
 };
@@ -261,6 +276,9 @@ export default {
   text-align: left;
   margin-bottom: 10px;
 }
+.next{
+  margin-top: 10px;
+}
 .style_display{
   display: flex;
   flex-direction: row;
@@ -273,6 +291,7 @@ export default {
   font-size: 12px;
   border: 1px solid #EBEEF5;
   padding: 0 5px;
+  text-align: center;
 }
 .colorBox{
   width: 15px;
