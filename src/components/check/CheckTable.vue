@@ -232,7 +232,7 @@ export default {
     handleAddDict(){
       for(let i=0;i<this.dataDataGet.length;i++){
         this.count+=1
-        const obj={'title':'','count':this.count}
+        const obj={'title':'111111111','count':this.count}
         this.$set(this.dataDataGet[i],'children',obj)
       }
       console.log(this.dataDataGet)
