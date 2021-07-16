@@ -3,7 +3,7 @@ import request from "@/utils/request";
 function post(url, data) {
     return request({
         url,
-        data,
+        data: data,
         method: "post"
     });
 }
@@ -33,7 +33,8 @@ function exportList(data) {
 export {
     syllableList,
     reportList,
-    queryList
+    queryList,
+    exportList
 };
 
 

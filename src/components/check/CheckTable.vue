@@ -6,32 +6,24 @@
         :data="sourceData"
         style="width:100%;"
         v-loading="listLoading"
+        @header-click="getCell"
         border
-      > 
-        <!-- <el-table-column label="序号" width="60" align="center">
-          <template slot-scope="scope" style="width:100%">
-            <div>{{scope.$index + 1}}</div>
-          </template>
-        </el-table-column> -->
+      >
         <el-table-column
           v-for="(item,index) in dataDataGet"
           :key="index"
           align="center"
           :prop="item.syllableEng"
         > 
-          <el-table-column
-            v-if="item.children"
-            align="center"
-          >
-            <template slot="header" :slot-scope="item.children">
-              <el-input v-model="item.children.title" placeholder="请输入" size="large" @input="getScope"/>
-            </template>
-          </el-table-column> 
-          <!-- <template slot-scope="scope">
-            <span v-if="scope.row.index<count">
-              <el-input v-model="scope.row.dict" maxlength="300" placeholder="请输入原因" size="large"/>
-            </span>
-          </template> -->
+          <template v-if="item.children">
+            <table-column-input  v-for="(st, index) in item.children"
+              :key="index"
+              :data="item.syllableEng"
+              :col="item.children"
+              @getEditDick='getEditDick'
+            >
+            </table-column-input>
+          </template> 
           <template slot="header" slot-scope="scope">
             <div @click="getCell(scope)">{{item.syllableChi}}</div>
           </template>
@@ -118,10 +110,12 @@
 </template>
 
 <script>
+import TableColumnInput from '../../components/check/TableColumnInput.vue'
 export default {
   name: 'baseTable',
+  components:{TableColumnInput},
   props: {
-    dataData: {
+   dataData: {
       type: Array,
        default() {
         return [];
@@ -176,16 +170,14 @@ export default {
       this.pagination.pageNum = 1;
       this.pagination.pageSize = val;
       // 更新数据
-    //   this.$emit('reloadList', { pageSize: val });
+      this.$emit('reloadList', { pageSize: val });
     },
     handleCurrentChange(val) {
       this.pagination.pageNum = val;
-    //   // 更新数据
-    //   this.$emit('reloadList', { pageNum: val });
+      this.$emit('reloadList', { pageNum: val });
     },
     //修改背景颜色
     handleBgColor(command) {
-      console.log(command)
       this.activeBgColor=`${command}`
       this.dictList.forEach(item=>{
         const dom=document.getElementsByClassName(item)
@@ -194,53 +186,84 @@ export default {
     },
     //修改字体颜色
     handleColor(command) {
-      console.log(command)
       this.activeColor=`${command}`
       this.dictList.forEach(item=>{
         const dom=document.getElementsByClassName(item)
+        const dominput=dom[0].getElementsByClassName('inputValue')
+        if(dominput[0]){
+          dominput[0].style.color=command
+        }
         dom[0].style.color=command
       })
     },
     //修改字体大小
     handleFont(command){
-      console.log(command)
       this.activeFont=`${command}`
       this.dictList.forEach(item=>{
         const dom=document.getElementsByClassName(item)
+        const dominput=dom[0].getElementsByClassName('inputValue')
+        if(dominput[0]){
+          dominput[0].style.fontSize=command+'px'
+        }
         dom[0].style.fontSize=command+'px'
       })
     },
-    //选中表头以修改样式
-    getCell(scope){
-      const dom=document.getElementsByClassName(scope.column.id)
-      if(dom[0].style.border){
-        if(dom[0].style.border===''){
-          dom[0].style.border='1px solid black'
-          this.dictList.push(scope.column.id)
+     //选中表头以修改样式
+    getCell(column,event){
+      if(column.id!=='el-table_1_column_1'){
+        const dom=document.getElementsByClassName(column.id)
+        if(dom[0].style.border){
+          if(dom[0].style.border==''){
+            dom[0].style.border='1px solid black'
+            this.dictList.push(column.id)
+          }else{
+            dom[0].style.border=''
+            this.dictList.splice(this.dictList.findIndex(item => item === column.id), 1)
+          }
         }else{
-          dom[0].style.border=''
-          this.dictList.splice(this.dictList.findIndex(item => item === scope.column.id), 1)
+          dom[0].style.border="1px solid black"
+          this.dictList.push(column.id)
         }
-      }else{
-        dom[0].style.border="1px solid black"
-        this.dictList.push(scope.column.id)
       }
-      console.log(this.dictList)
     },
     //动态添加表头-我使用的方法使在表格数据里加一行自定义操作的空数据
     //然后标记加了几行，上送的时候取出这几行编辑的数据作为表头上送
     handleAddDict(){
+      this.count+=1
       for(let i=0;i<this.dataDataGet.length;i++){
-        this.count+=1
-        const obj={'title':'111111111','count':this.count}
-        this.$set(this.dataDataGet[i],'children',obj)
+        const obj={'children':'',}
+        if(this.count===1){
+          this.$set(this.dataDataGet[i],'children',obj)
+        }else if(this.count===2){
+          this.$set(this.dataDataGet[i].children,'children',obj)
+        }else if(this.count===3){
+          this.$set(this.dataDataGet[i].children.children,'children',obj)
+        }else{
+          this.$message({
+            message:'最多添加三级表头！',
+            duration:150000
+          });
+          break;
+        }
       }
-      console.log(this.dataDataGet)
     },
-    ///////
-    getScope(){
-      // this.$set(this.dataData[index].children,"title",val.title);
-      this.$emit('dataChange',this.dataDataGet)
+    //获取增加的表头的内容
+    getEditDick(val){
+      this.dataDataGet.forEach(item=>{
+        val.unshift(item.syllableChi)
+      })
+      const ceilContent=[]
+      const col=this.dataDataGet.length//计算一共有几列
+      for(let i=0;i<col;i++){
+        const arr=[]
+        for(let j=0;j<val.length;j++){
+          if(j%col===i){
+            arr.push(val[j])
+          }
+        }
+        ceilContent.push(arr)
+      }
+      this.$emit('ceilContent',ceilContent)
     }
   },
   watch:{
@@ -250,7 +273,7 @@ export default {
       dataData(val){
         this.dataDataGet=val
       }
-  }
+  },
 };
 </script>
 
@@ -260,6 +283,7 @@ export default {
   justify-content: center;
   padding: 40px 0;
 }
+
 .color_display{
   display: flex;
   width: 60px;

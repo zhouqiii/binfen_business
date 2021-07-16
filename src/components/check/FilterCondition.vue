@@ -4,6 +4,7 @@
       <div class="condition_operate">
         <div class="condition_operate_select">
           <el-select v-model="select" placeholder="请选择" @change="changeCondition">
+             <el-option label="全部" value="0"></el-option>
             <el-option label="精确查找" value="1"></el-option>
             <el-option label="模糊查找" value="2"></el-option>
             <el-option label="输入区间查找" value="3"></el-option>
@@ -87,7 +88,7 @@ export default {
             }
           }]
         },
-        select:'1',//select默认展示精确查找
+        select:'0',//select默认展示精确查找
         content:'',//select=1||2||4输入框的值
         contentStart:'',//选择输入区间的第一个输入框
         contentEnd:'',//选择输入区间的第二个输入框

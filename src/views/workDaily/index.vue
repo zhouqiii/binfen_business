@@ -26,6 +26,10 @@
             :listLoading='listLoading'
             :dataData="dataData"
             v-on:dataChange='dataChange'
+            :pagination="pagination"
+            :total="total"
+            @reloadList="reloadList"
+            @ceilContent='getCeilContent'
           ></check-table>
         </el-tab-pane>
       </el-tabs>
@@ -34,7 +38,7 @@
 </template>
 <script>
 import FilterCondition from '../../components/check/FilterCondition.vue';
-import {reportList,syllableList,queryList} from '@/api/check'
+import {reportList,syllableList,queryList,exportList} from '@/api/check'
 import CheckTable from '../../components/check/CheckTable.vue';
 export default {
   components: { FilterCondition, CheckTable },
@@ -42,10 +46,16 @@ export default {
   data(){
     return{
       dataData:[],//tab对应的有汉字有英文字段
-      editableTabs: [{'reportId':'02c','reportName':'报表1'},{'reportId':'ads','reportName':'报表2'}],
+      editableTabs: [],
       sourceData:[],
       listLoading:false,
       reportId:'',//用来存放当前的报表Id
+      total:null,
+      pagination: {
+        pageNum: 1,
+        pageSize: 10
+      },
+      ceilContent:[],//用来保存导出要上送的表头内容
     }
   },
   methods:{
@@ -57,27 +67,55 @@ export default {
     },
     ////切换tab不同报表加载该报表对应的字段及更新表格
     handleClick(tab) {
-      let nn;
-      this.dataData=[];
       this.reportId=tab.name
-      if(this.reportId==='02c'){
-        nn=[ { "groupName": "部门名称" } ] 
-      }else{
-        nn=[ { "groupName": "部门名称" } , { "groupId": "部门编号" },{ "groupNumber": "部门人数" } ] 
-      }
-      nn.map(item=>{
-        const obj={'syllableChi':Object.values(item).toString(),'syllableEng':Object.keys(item).toString()}
-        this.dataData.push(obj)
+      let data = { reportId:tab.name }
+      syllableList(data).then(res => {
+        const list=res.data;
+        list.map(item=>{
+          const obj={'syllableChi':Object.values(item).toString(),'syllableEng':Object.keys(item).toString()}
+          this.dataData.push(obj)
+        })
+      }).then(()=>{
+        this.listLoading=true
+        this.getTableOrigin()
+      });
+    },
+    //查询表格数据
+    queryList(data){
+      queryList(data).then(res=>{
+        this.listLoading=false
+        this.sourceData=res.data.list
+        this.total=res.data.total
+        this.pagination.pageNum=res.data.pageNum
+        this.pagination.pageSize=res.data.pageSize
+        if(res.data.list.length===0){
+          this.$message('暂无符合条件的数据');
+        }
       })
-      ////
-      // const reportId = { reportId:tab.name }
-      // syllableList(reportId).then(res => {
-      //   const list=res.data;
-      //   list.map(item=>{
-      //     const obj={'syllableChi':Object.values(item).toString(),'syllableEng':Object.keys(item).toString()}
-      //     this.dataData.push(obj)
-      //   })
-      // });
+    },
+    //切换tab初始化表格
+    getTableOrigin(){
+      const data = {
+        reportId: this.reportId,
+        where: '',
+        pageNum: this.pagination.pageNum,
+        pageSize: this.pagination.pageSize
+      }
+      this.queryList(data)
+    },
+    //每页数据或者页数改变更新表格
+    reloadList(res){
+      if (res.pageNum) {
+        this.pagination.pageNum = res.pageNum;
+      }
+      if (res.pageSize) {
+        this.pagination.pageSize = res.pageSize;
+      }
+      this.queryData()
+    },
+    //把修改后的表头赋值给这里的ceilContent
+    getCeilContent(val){
+      this.ceilContent=val
     },
     //格式化时间区间
     formatTime(timeList){
@@ -92,14 +130,14 @@ export default {
       const reportId = this.reportId
       const obj={}
       for(let i=0;i<this.dataData.length;i++){
-        const getData=this.$refs.child[i+this.dataData.length]//v-for嵌套了两层，这里标识用第二个v-for
+        const getData=this.$refs.child[i]//v-for嵌套了两层，这里标识用第二个v-for
         if(getData.select==='1'){
           obj[`${this.dataData[i].syllableEng}-=`]=getData.content
         }else if(getData.select==='2'){
           obj[`${this.dataData[i].syllableEng}-like`]=getData.content
         }else if(getData.select==='3'){
           obj[`${this.dataData[i].syllableEng}-between`]=`${getData.contentStart},${getData.contentEnd}`
-        }else{
+        }else if(getData.select==='4'){
           obj[`${this.dataData[i].syllableEng}-between`]=this.formatTime(getData.content)
         }
       }
@@ -107,7 +145,7 @@ export default {
     },
     //重置查询字段输入内容
     resetData(){
-      this.$ref.child.forEach(item => {
+      this.$refs.child.forEach(item => {
         item.content=''
         item.contentStart=''
         item.contentEnd=''
@@ -115,45 +153,62 @@ export default {
     },
     //按查询字段输入查询
     queryData(){
-      ////
+      this.listLoading=true
       const reportId=this.assignCondition().reportId
-      let list=[]
-      let testObj={}
-      if(reportId==='ads'){
-        for(let i=0;i<22;i++){
-          testObj={'groupName':`${i}组数据`,'groupId':`A${i}C${i}D`,'groupNumber':`2${i}`}
-          list.push(testObj)
+      const obj=JSON.stringify(this.assignCondition().obj)
+      let data = {
+        reportId: reportId,
+        where: obj,
+        pageNum: this.pagination.pageNum,
+        pageSize: this.pagination.pageSize
         }
-      }else{
-        for(let j=0;j<9;j++){
-          testObj={'groupName':`第${j}组`}
-          list.push(testObj)
-        }
-      }
-      this.sourceData=list
-      /////
-      // const reportId=this.assignCondition().reportId
-      // const obj=this.assignCondition().obj
-      // console.log(reportId,obj)
-      // const data={'reportId':reportId,'where':obj}
-      // queryList(data).then(res=>{
-      //   this.sourceData=res.data
-      // })
+      this.queryList(data)
     },
     //导出当前页数据
     exportData(){
+      this.listLoading=true
+      if(this.ceilContent.length===0){//说明没有增加表头
+        for(let i=0;i<this.dataData.length;i++){
+          const arr=[]
+          arr.push(this.dataData[i].syllableChi)
+          this.ceilContent.push(arr)
+        }
+      }
       const reportId=this.assignCondition().reportId
-      const obj=this.assignCondition().obj
+      const where=JSON.stringify(this.assignCondition().obj)
+      const ceilContent=this.ceilContent
+      const obj={}
+      obj['bgColor']='22'
+      obj['fontColor']='0'
+      obj['fontSize']='15'
+      const testObj=JSON.stringify(obj)
+      const ceilStyle=[[
+            testObj
+        ],
+        [
+            testObj
+        ]
+      ]
+      const data={
+        reportId,
+        where,
+        ceilContent,
+        ceilStyle
+      }
+      exportList(data).then(res=>{
+        this.listLoading=false
+        console.log(res)
+      })
+
     },
     //子组件添加表头后通知父组件接受
     dataChange(val){
       this.dataData=val
-      console.log(this.dataData)
     }
   },
   created(){
     this.$nextTick(()=>{
-      //this.getReportList()
+      this.getReportList()
     })
   }
 }
