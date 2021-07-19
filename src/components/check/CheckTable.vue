@@ -9,86 +9,89 @@
         @header-click="getCell"
         border
       >
-        <el-table-column
-          v-for="(item,index) in dataDataGet"
-          :key="index"
-          align="center"
-          :prop="item.syllableEng"
-        > 
-          <template v-if="item.children">
-            <table-column-input  v-for="(st, index) in item.children"
-              :key="index"
-              :data="item.syllableEng"
-              :col="item.children"
-              @getEditDick='getEditDick'
-            >
-            </table-column-input>
-          </template> 
-          <template slot="header" slot-scope="scope">
-            <div @click="getCell(scope)">{{item.syllableChi}}</div>
-          </template>
-        </el-table-column>
         <el-table-column align="right">
+          <el-table-column
+            v-for="(item,indexB) in dataDataGet"
+            :key="indexB"
+            align="center"
+            :prop="item.syllableEng"
+          > 
+            <template v-if="item.children">
+              <table-column-input  v-for="(st, index) in item.children"
+                :key="index"
+                :data="item.syllableEng"
+                :col="item.children"
+                @getEditDick='getEditDick'
+              >
+              </table-column-input>
+              
+            </template> 
+            <template slot="header">
+              <div>{{item.syllableChi}}</div>
+            </template>
+          </el-table-column>
           <template slot="header">
             <div class="style_display">
               <div class="dict_title">表头操作:</div>
-              <el-button type="primary" size="small" icon="el-icon-circle-plus-outline" @click="handleAddDict">
-              </el-button>
+              <div>
+                <el-dropdown @command="handleBgColor" trigger="click">
+                  <div :style="{background:activeBgColor}">
+                  背景颜色<i class="el-icon-arrow-down el-icon--right"></i>
+                  </div>
+                  <el-dropdown-menu slot="dropdown" class="color_display">
+                    <el-dropdown-item v-for="(item,index) in colorList" 
+                      :key="index"
+                      :command="item.id"
+                    >
+                      <div class="colorBox red" v-if="item.id==='red'"></div>
+                      <div class="colorBox blue" v-if="item.id==='blue'"></div>
+                      <div class="colorBox black" v-if="item.id==='black'"></div>
+                      <div class="colorBox yellow" v-if="item.id==='yellow'"></div>
+                      <div class="colorBox grey" v-if="item.id==='grey'"></div>
+                      <div class="colorBox orange" v-if="item.id==='orange'"></div>
+                      <div class="colorBox green" v-if="item.id==='green'"></div>
+                      <div class="colorBox inherit" v-if="item.id==='inherit'"></div>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+                <el-dropdown @command="handleColor" trigger="click">
+                  <div :style="{color:activeColor}">
+                  字体颜色<i class="el-icon-arrow-down el-icon--right"></i>
+                  </div>
+                  <el-dropdown-menu slot="dropdown" class="color_display">
+                    <el-dropdown-item v-for="(item,index) in colorList" 
+                      :key="index"
+                      :command="item.id"
+                    >
+                      <div class="colorBox red" v-if="item.id==='red'"></div>
+                      <div class="colorBox blue" v-if="item.id==='blue'"></div>
+                      <div class="colorBox black" v-if="item.id==='black'"></div>
+                      <div class="colorBox yellow" v-if="item.id==='yellow'"></div>
+                      <div class="colorBox grey" v-if="item.id==='grey'"></div>
+                      <div class="colorBox orange" v-if="item.id==='orange'"></div>
+                      <div class="colorBox green" v-if="item.id==='green'"></div>
+                      <div class="colorBox inherit" v-if="item.id==='inherit'"></div>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+                <el-dropdown @command="handleFont" trigger="click">
+                  <div :style="{fontSize:activeFont}">
+                  字体大小<i class="el-icon-arrow-down el-icon--right"></i>
+                  </div>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item v-for="(item,index) in fontList" 
+                      :key="index"
+                      :command="item.id"
+                    >
+                      <div class="fontBox" :style="{fontSize:item.id}">{{item.id}}</div>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+                <el-button type="primary" size="small" icon="el-icon-circle-plus-outline" @click="handleAddDict">
+                </el-button>
+              </div>
             </div>
             <div class="style_display next">
-              <el-dropdown @command="handleBgColor" trigger="click">
-                <div :style="{background:activeBgColor}">
-                背景颜色<i class="el-icon-arrow-down el-icon--right"></i>
-                </div>
-                <el-dropdown-menu slot="dropdown" class="color_display">
-                  <el-dropdown-item v-for="(item,index) in colorList" 
-                    :key="index"
-                    :command="item.id"
-                  >
-                    <div class="colorBox red" v-if="item.id==='red'"></div>
-                    <div class="colorBox blue" v-if="item.id==='blue'"></div>
-                    <div class="colorBox black" v-if="item.id==='black'"></div>
-                    <div class="colorBox yellow" v-if="item.id==='yellow'"></div>
-                    <div class="colorBox grey" v-if="item.id==='grey'"></div>
-                    <div class="colorBox orange" v-if="item.id==='orange'"></div>
-                    <div class="colorBox green" v-if="item.id==='green'"></div>
-                    <div class="colorBox inherit" v-if="item.id==='inherit'"></div>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-              <el-dropdown @command="handleColor" trigger="click">
-                <div :style="{color:activeColor}">
-                字体颜色<i class="el-icon-arrow-down el-icon--right"></i>
-                </div>
-                <el-dropdown-menu slot="dropdown" class="color_display">
-                  <el-dropdown-item v-for="(item,index) in colorList" 
-                    :key="index"
-                    :command="item.id"
-                  >
-                    <div class="colorBox red" v-if="item.id==='red'"></div>
-                    <div class="colorBox blue" v-if="item.id==='blue'"></div>
-                    <div class="colorBox black" v-if="item.id==='black'"></div>
-                    <div class="colorBox yellow" v-if="item.id==='yellow'"></div>
-                    <div class="colorBox grey" v-if="item.id==='grey'"></div>
-                    <div class="colorBox orange" v-if="item.id==='orange'"></div>
-                    <div class="colorBox green" v-if="item.id==='green'"></div>
-                    <div class="colorBox inherit" v-if="item.id==='inherit'"></div>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-              <el-dropdown @command="handleFont" trigger="click">
-                <div :style="{fontSize:activeFont}">
-                字体大小<i class="el-icon-arrow-down el-icon--right"></i>
-                </div>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item v-for="(item,index) in fontList" 
-                    :key="index"
-                    :command="item.id"
-                  >
-                    <div class="fontBox" :style="{fontSize:item.id}">{{item.id}}</div>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
             </div>
           </template>
         </el-table-column>
@@ -147,7 +150,7 @@ export default {
   },
   data() {
     return {
-      test:'',
+      title:[],
       dataDataGet:[],
       count:0,//用来标记前几行是加的表头
       pages: [10, 15, 20, 30, 50, 100],
@@ -184,6 +187,13 @@ export default {
         dom[0].style.background=command
       })
     },
+    titleGet(index){
+     if(this.title[index]){
+       return this.title[index]
+     }else{
+       return ''
+     }
+    },
     //修改字体颜色
     handleColor(command) {
       this.activeColor=`${command}`
@@ -212,7 +222,7 @@ export default {
     getCell(column,event){
       if(column.id!=='el-table_1_column_1'){
         const dom=document.getElementsByClassName(column.id)
-        if(dom[0].style.border){
+        if(dom[0].style){
           if(dom[0].style.border==''){
             dom[0].style.border='1px solid black'
             this.dictList.push(column.id)
@@ -234,7 +244,8 @@ export default {
         const obj={'children':'',}
         if(this.count===1){
           this.$set(this.dataDataGet[i],'children',obj)
-        }else if(this.count===2){
+        }
+        else if(this.count===2){
           this.$set(this.dataDataGet[i].children,'children',obj)
         }else if(this.count===3){
           this.$set(this.dataDataGet[i].children.children,'children',obj)
@@ -246,12 +257,25 @@ export default {
           break;
         }
       }
+      this.$nextTick(()=>{
+        const dom=document.getElementsByClassName('inputValue')
+        if(dom){
+          for(let i=0;i<dom.length;i++){
+            if(this.title[i]){
+              dom[i].value=this.title[i]
+            }else{
+              dom[i].value=''
+            }
+          }
+        }
+      })
     },
     //获取增加的表头的内容
     getEditDick(val){
       this.dataDataGet.forEach(item=>{
         val.unshift(item.syllableChi)
       })
+      this.title=val.slice(this.dataDataGet.length)
       const ceilContent=[]
       const col=this.dataDataGet.length//计算一共有几列
       for(let i=0;i<col;i++){

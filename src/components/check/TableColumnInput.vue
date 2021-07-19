@@ -3,7 +3,7 @@
       <template slot="header">
         <div>
           <input type="text"
-            :value="title" 
+            :value="title"
             placeholder="请输入"
             class="inputValue"
             @input="submitValue"
@@ -12,9 +12,9 @@
         </div>
       </template>
       <template v-if="col.children">
-        <table-column-input v-for="(item,index) in col.children" 
+        <table-column-input v-for="(item,index) in col.children"
           :key="index" 
-          :col='col.children' 
+          :col='col.children'
           :data="data"
           @getEditDick='submitValue'
         >
@@ -31,24 +31,33 @@ export default {
     },
     data: {
       type: String
-    }
+    },
+    // title: {
+    //   type:String
+    // }
   },
   data(){
     return{
-      title:'',
+      editDickList:[],
+      title:''
     }
   },
   methods:{
     //选中表头以修改样式
     submitValue(){
-      let editDickList=[]
+      this.editDickList=[]
       const dom=document.getElementsByClassName('inputValue')
       for(let i=0;i<dom.length;i++){
-        editDickList.push(dom[i].value)
+        this.editDickList.push(dom[i].value)
       }
-      this.$emit('getEditDick',editDickList)
+      this.$emit('getEditDick',this.editDickList)
     },
   },
+  created(){
+    this.$nextTick(()=>{
+       
+    })
+  }
 }
 </script>
 <style lang="scss">
