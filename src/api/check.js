@@ -28,7 +28,12 @@ function queryList(data) {
 }
 //报表导出
 function exportList(data) {
-    return post("/dynReport/dyn-report/downReport", data);
+    return request({
+        url: '/dynReport/dyn-report/downReport',
+        data,
+        method: "post",
+        responseType: 'blob'
+    });
 }
 export {
     syllableList,

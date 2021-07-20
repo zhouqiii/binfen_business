@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <el-tabs type="border-card" @tab-click="handleClick">
+      <el-tabs type="border-card" @tab-click="handleClick" v-model="reportId">
         <el-tab-pane 
           :key="item.reportId"
           v-for="item in editableTabs"
@@ -25,7 +25,6 @@
             :sourceData="sourceData"
             :listLoading='listLoading'
             :dataData="dataData"
-            v-on:dataChange='dataChange'
             :pagination="pagination"
             :total="total"
             @reloadList="reloadList"
@@ -42,7 +41,7 @@ import {reportList,syllableList,queryList,exportList} from '@/api/check'
 import CheckTable from '../../components/check/CheckTable.vue';
 export default {
   components: { FilterCondition, CheckTable },
-  name:'workDailyList',
+  name:'workDailyList',//checkList
   data(){
     return{
       dataData:[],//tab对应的有汉字有英文字段
@@ -50,6 +49,7 @@ export default {
       sourceData:[],
       listLoading:false,
       reportId:'',//用来存放当前的报表Id
+      reportName:'',//用来存放当前的报表名--导出的时候可以用
       total:null,
       pagination: {
         pageNum: 1,
@@ -63,22 +63,30 @@ export default {
     getReportList(){
       reportList({}).then(res => {
         this.editableTabs = res.data
+        const obj={
+          name:this.editableTabs[0].reportId,
+          index:0
+        }
+        this.handleClick(obj)//初试默认打开第一个报表
       })
     },
     ////切换tab不同报表加载该报表对应的字段及更新表格
     handleClick(tab) {
-      this.reportId=tab.name
-      let data = { reportId:tab.name }
-      syllableList(data).then(res => {
-        const list=res.data;
-        list.map(item=>{
-          const obj={'syllableChi':Object.values(item).toString(),'syllableEng':Object.keys(item).toString()}
-          this.dataData.push(obj)
-        })
-      }).then(()=>{
-        this.listLoading=true
-        this.getTableOrigin()
-      });
+      this.reportName=this.editableTabs[tab.index].reportName
+      if(this.reportId!==tab.name){
+        this.reportId=tab.name
+        let data = { reportId:tab.name }
+        syllableList(data).then(res => {
+          const list=res.data;
+          list.map(item=>{
+            const obj={'syllableChi':Object.values(item).toString(),'syllableEng':Object.keys(item).toString()}
+            this.dataData.push(obj)
+          })
+        }).then(()=>{
+          this.listLoading=true
+          this.getTableOrigin()
+        });
+      }
     },
     //查询表格数据
     queryList(data){
@@ -166,9 +174,9 @@ export default {
     },
     //导出当前页数据
     exportData(){
-      this.listLoading=true
+      const col=this.dataData.length//计算一共有几列
       if(this.ceilContent.length===0){//说明没有增加表头
-        for(let i=0;i<this.dataData.length;i++){
+        for(let i=0;i<col;i++){
           const arr=[]
           arr.push(this.dataData[i].syllableChi)
           this.ceilContent.push(arr)
@@ -177,18 +185,30 @@ export default {
       const reportId=this.assignCondition().reportId
       const where=JSON.stringify(this.assignCondition().obj)
       const ceilContent=this.ceilContent
-      const obj={}
-      obj['bgColor']='22'
-      obj['fontColor']='0'
-      obj['fontSize']='15'
-      const testObj=JSON.stringify(obj)
-      const ceilStyle=[[
-            testObj
-        ],
-        [
-            testObj
-        ]
-      ]
+      const dickDom=document.getElementsByClassName('el-table__header')
+      const dickDomTh=dickDom[0].getElementsByTagName('th')
+      const styleList=[]
+      for(let i=0;i<dickDomTh.length;i++){
+        if(dickDomTh[i].className.split(' ')[0]!=='el-table_1_column_1' && dickDomTh[i].className.split(' ')[0]!=='gutter'){
+          styleList.push(dickDomTh[i].className.split(' ')[0])
+        }
+      }
+      const ceilStyle=[]
+      for(let i=0;i<col;i++){
+        const arr=[]
+        for(let j=0;j<styleList.length;j++){
+         const domItem=document.getElementsByClassName(styleList[j])
+          if(j%col===i){
+            const obj={
+              'bgColor':domItem[0].style.background || '#F5F7FA',
+              'fontColor':domItem[0].style.color || '#909399',
+              'fontSize':domItem[0].style.fontSize.split('px')[0] || '14',
+            }
+            arr.push(JSON.stringify(obj))
+          }
+        }
+        ceilStyle.push(arr)
+      }
       const data={
         reportId,
         where,
@@ -196,15 +216,16 @@ export default {
         ceilStyle
       }
       exportList(data).then(res=>{
-        this.listLoading=false
-        console.log(res)
+        const link = document.createElement('a');
+        const blob = new Blob([res.data], { type: 'application/vnd.ms-excel' });
+        link.style.display = 'none';
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download',`${this.reportName}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       })
-
     },
-    //子组件添加表头后通知父组件接受
-    dataChange(val){
-      this.dataData=val
-    }
   },
   created(){
     this.$nextTick(()=>{

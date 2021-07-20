@@ -24,7 +24,6 @@
                 @getEditDick='getEditDick'
               >
               </table-column-input>
-              
             </template> 
             <template slot="header">
               <div>{{item.syllableChi}}</div>
@@ -32,66 +31,55 @@
           </el-table-column>
           <template slot="header">
             <div class="style_display">
-              <div class="dict_title">表头操作:</div>
+              <el-button
+              type="primary"
+                size="small" 
+                class="btn_add"
+                icon="el-icon-circle-plus-outline"
+                @click="handleAddDict"
+              >
+              </el-button>
               <div>
                 <el-dropdown @command="handleBgColor" trigger="click">
-                  <div :style="{background:activeBgColor}">
+                  <div>
                   背景颜色<i class="el-icon-arrow-down el-icon--right"></i>
                   </div>
                   <el-dropdown-menu slot="dropdown" class="color_display">
-                    <el-dropdown-item v-for="(item,index) in colorList" 
+                    <el-dropdown-item v-for="(item,index) in bgColor" 
                       :key="index"
                       :command="item.id"
                     >
-                      <div class="colorBox red" v-if="item.id==='red'"></div>
-                      <div class="colorBox blue" v-if="item.id==='blue'"></div>
-                      <div class="colorBox black" v-if="item.id==='black'"></div>
-                      <div class="colorBox yellow" v-if="item.id==='yellow'"></div>
-                      <div class="colorBox grey" v-if="item.id==='grey'"></div>
-                      <div class="colorBox orange" v-if="item.id==='orange'"></div>
-                      <div class="colorBox green" v-if="item.id==='green'"></div>
-                      <div class="colorBox inherit" v-if="item.id==='inherit'"></div>
+                      <div class="colorBox" :style="{background:item.id}"></div>
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
                 <el-dropdown @command="handleColor" trigger="click">
-                  <div :style="{color:activeColor}">
-                  字体颜色<i class="el-icon-arrow-down el-icon--right"></i>
+                  <div>
+                    <span>字体颜色<i class="el-icon-arrow-down el-icon--right"></i></span>
                   </div>
                   <el-dropdown-menu slot="dropdown" class="color_display">
-                    <el-dropdown-item v-for="(item,index) in colorList" 
+                    <el-dropdown-item v-for="(item,index) in color" 
                       :key="index"
                       :command="item.id"
                     >
-                      <div class="colorBox red" v-if="item.id==='red'"></div>
-                      <div class="colorBox blue" v-if="item.id==='blue'"></div>
-                      <div class="colorBox black" v-if="item.id==='black'"></div>
-                      <div class="colorBox yellow" v-if="item.id==='yellow'"></div>
-                      <div class="colorBox grey" v-if="item.id==='grey'"></div>
-                      <div class="colorBox orange" v-if="item.id==='orange'"></div>
-                      <div class="colorBox green" v-if="item.id==='green'"></div>
-                      <div class="colorBox inherit" v-if="item.id==='inherit'"></div>
+                      <div class="colorBox" :style="{background:item.id}"></div>
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
                 <el-dropdown @command="handleFont" trigger="click">
-                  <div :style="{fontSize:activeFont}">
+                  <div>
                   字体大小<i class="el-icon-arrow-down el-icon--right"></i>
                   </div>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item v-for="(item,index) in fontList" 
+                    <el-dropdown-item v-for="(item,index) in fontSize"
                       :key="index"
                       :command="item.id"
                     >
-                      <div class="fontBox" :style="{fontSize:item.id}">{{item.id}}</div>
+                      <div class="fontBox">{{item.id}}</div>
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
-                <el-button type="primary" size="small" icon="el-icon-circle-plus-outline" @click="handleAddDict">
-                </el-button>
               </div>
-            </div>
-            <div class="style_display next">
             </div>
           </template>
         </el-table-column>
@@ -154,18 +142,43 @@ export default {
       dataDataGet:[],
       count:0,//用来标记前几行是加的表头
       pages: [10, 15, 20, 30, 50, 100],
-      activeBgColor:'inherit',//背景颜色
-      activeColor:'inherit',//字体颜色
-      activeFont:'inherit',//字体大小
+      styleList:{
+        background:'#F5F7FA',//背景颜色
+        color:'#909399',//字体颜色
+        fontSize:'14px',//字体大小
+      },
       dictList:[],//用来存放表头选中的dom，以遍历修改样式
-      colorList:[{id:'red',title:'红色'},{id:'blue',title:'蓝色'},
-        {id:'green',title:'绿色'},{id:'grey',title:'灰色'}
-        ,{id:'black',title:'黑色'},{id:'orange',title:'橙色'}
-        ,{id:'yellow',title:'黄色'},{id:'inherit',title:'原始色'}],
-      fontList:[{id:'14',title:'红色'},{id:'15',title:'蓝色'},
-        {id:'16',title:'绿色'},{id:'17',title:'灰色'}
-        ,{id:'18',title:'黑色'},{id:'19',title:'橙色'}
-        ,{id:'20',title:'黄色'},{id:'inherit',title:'原始大小'},]
+      bgColor:[
+        {id:'#F5F7FA',title:'原始色'},
+        {id:'red',title:'红色'},
+        {id:'orange',title:'橙色'},
+        {id:'yellow',title:'黄色'},
+        {id:'green',title:'绿色'},
+        {id:'#5F9EA0',title:'青色'},
+        {id:'blue',title:'蓝色'},
+        {id:'purple',title:'紫色'},
+        {id:'white',title:'白色'},
+      ],
+       color:[
+        {id:'#909399',title:'原始色'},
+        {id:'red',title:'红色'},
+        {id:'orange',title:'橙色'},
+        {id:'yellow',title:'黄色'},
+        {id:'green',title:'绿色'},
+        {id:'#5F9EA0',title:'青色'},
+        {id:'blue',title:'蓝色'},
+        {id:'purple',title:'紫色'},
+        {id:'white',title:'白色'},
+        ],
+      fontSize:[
+        {id:'14',title:'14'},
+        {id:'15',title:'15'},
+        {id:'16',title:'16'},
+        {id:'17',title:'17'},
+        {id:'18',title:'18'},
+        {id:'19',title:'19'},
+        {id:'20',title:'20'}
+      ]
     };
   },
   methods: {
@@ -181,7 +194,8 @@ export default {
     },
     //修改背景颜色
     handleBgColor(command) {
-      this.activeBgColor=`${command}`
+      this.$set(this.styleList,'background',command)
+      console.log(this.styleList)
       this.dictList.forEach(item=>{
         const dom=document.getElementsByClassName(item)
         dom[0].style.background=command
@@ -196,7 +210,7 @@ export default {
     },
     //修改字体颜色
     handleColor(command) {
-      this.activeColor=`${command}`
+      this.$set(this.styleList,'color',command)
       this.dictList.forEach(item=>{
         const dom=document.getElementsByClassName(item)
         const dominput=dom[0].getElementsByClassName('inputValue')
@@ -208,7 +222,7 @@ export default {
     },
     //修改字体大小
     handleFont(command){
-      this.activeFont=`${command}`
+      this.$set(this.styleList,'fontSize',command)
       this.dictList.forEach(item=>{
         const dom=document.getElementsByClassName(item)
         const dominput=dom[0].getElementsByClassName('inputValue')
@@ -252,7 +266,7 @@ export default {
         }else{
           this.$message({
             message:'最多添加三级表头！',
-            duration:150000
+            duration:15000
           });
           break;
         }
@@ -296,7 +310,8 @@ export default {
       },
       dataData(val){
         this.dataDataGet=val
-      }
+      },
+      
   },
 };
 </script>
@@ -327,6 +342,13 @@ export default {
 .next{
   margin-top: 10px;
 }
+.btn_add{
+  padding-top: 7px;
+  padding-bottom: 7px;
+  .el-icon-circle-plus-outline{
+    font-size: 16px;
+  }
+}
 .style_display{
   display: flex;
   flex-direction: row;
@@ -337,9 +359,15 @@ export default {
 .el-dropdown{
   color: inherit;
   font-size: 12px;
-  border: 1px solid #EBEEF5;
+  border: 1px solid #DCDFE6;
   padding: 0 5px;
   text-align: center;
+  height: 32px;
+  line-height: 32px;
+}
+.color_line{
+  height: 10px;
+  width: 30px;
 }
 .colorBox{
   width: 15px;
@@ -347,28 +375,31 @@ export default {
   margin-bottom: 2px;
   border: 1px solid black;
 }
+.inheritCF{
+  background: #909399;
+}
+.inheritC{
+  background: #F5F7FA;
+}
 .red{
   background: red;
 }
-.blue{
-  background: blue;
-}
 .orange{
-   background: orange;
-}
-.black{
-  background: black;
+  background: orange;
 }
 .yellow{
   background: yellow;
 }
-.grey{
-  background: gray;
-}
 .green{
   background: green;
 }
-.inherit{
-  background: inherit;
+.ching{
+  background: #5F9EA0;
+}
+.blue{
+  background: blue;
+}
+.purple{
+  background: purple;
 }
 </style>

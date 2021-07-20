@@ -122,6 +122,10 @@ export default {
 .addBorder{
   border-radius: 4px;
   border: 1px solid #DCDFE6;
+  .el-input__inner{
+    height: 38px;
+    line-height: 38px;
+  }
 }
 .condition_title{
   width: 100px;
